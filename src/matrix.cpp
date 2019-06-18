@@ -1,3 +1,4 @@
+#include <cmath>
 #include <sstream>
 #include <stdexcept>
 
@@ -47,6 +48,28 @@ namespace ekumath {
     columns_ = 1U;
     data_.resize(1);
     data_[0] = list;
+  }
+
+  Matrix
+  Matrix::Identity(size_t size)
+  {
+    Matrix A(size, size);
+    for (size_t i; i < size; i++) {
+      A.unsafe_at(i, i) = 1.;
+    }
+    return A;
+  }
+
+  Matrix
+  Matrix::Random(size_t rows, size_t columns)
+  {
+    Matrix A(rows, columns);
+    for (auto & column: A.data_) {
+      for (auto & element: column) {
+        element = static_cast<double>(std::rand()) + static_cast<double>(std::rand()) / 1000;
+      }
+    }
+    return A;
   }
 
   double &
@@ -149,5 +172,130 @@ namespace ekumath {
     }
     stream << unsafe_at(row, col);
     stream << "]";
+  }
+
+#define ELEMENT_WISE_OPERATION_WITH_DOUBLE(A, x, op) \
+  __ELEMENT_WISE_OPERATION_WITH_DOUBLE((A), (x), op)
+#define __ELEMENT_WISE_OPERATION_WITH_DOUBLE(A, x, op) \
+  { \
+    Matrix result(A.rows(), A.cols()); \
+    for (size_t col; col < A.cols(); col++) { \
+      for (size_t row; row < A.rows(); row++) { \
+        result.unsafe_at(row, col) = A.unsafe_at(row, col) op x; \
+      } \
+    } \
+    return result; \
+  }
+
+  Matrix
+  operator+(double x, const Matrix & A)
+  {
+    return A + x;
+  }
+
+  Matrix
+  operator+(const Matrix & A, double x)
+  ELEMENT_WISE_OPERATION_WITH_DOUBLE(A, x, +)
+
+  Matrix
+  operator*(double x, const Matrix & A)
+  {
+    return A * x;
+  }
+
+  Matrix
+  operator*(const Matrix & A, double x)
+  ELEMENT_WISE_OPERATION_WITH_DOUBLE(A, x, *)
+
+  Matrix
+  operator/(const Matrix & A, double x)
+  ELEMENT_WISE_OPERATION_WITH_DOUBLE(A, x, /)
+
+#define ELEMENT_WISE_OPERATION_WITH_ANOTHER_MATRIX(A, B, op) \
+  __ELEMENT_WISE_OPERATION_WITH_ANOTHER_MATRIX((A), (B), op)
+#define __ELEMENT_WISE_OPERATION_WITH_ANOTHER_MATRIX(A, B, op) \
+  { \
+    if (A.rows() != B.rows() || A.cols() != B.cols()) { \
+      throw std::runtime_error("Matrices must have the same dimension"); \
+    } \
+    Matrix result(A.rows(), A.cols()); \
+    for (size_t col; col < A.cols(); col++) { \
+      for (size_t row; row < A.rows(); row++) { \
+        result.unsafe_at(row, col) = A.unsafe_at(row, col) op B.unsafe_at(row, col); \
+      } \
+    } \
+    return result; \
+  }
+
+  Matrix
+  operator+(const Matrix & A, const Matrix & B)
+  ELEMENT_WISE_OPERATION_WITH_ANOTHER_MATRIX(A, B, +)
+
+  Matrix
+  operator*(const Matrix & A, const Matrix & B)
+  ELEMENT_WISE_OPERATION_WITH_ANOTHER_MATRIX(A, B, *)
+
+  Matrix
+  operator^(const Matrix & A, double x)
+  {
+    Matrix result(A.rows(), A.cols());
+    for (size_t col; col < A.cols(); col++) {
+      for (size_t row; row < A.rows(); row++) {
+        result.unsafe_at(row, col) = std::pow(A.unsafe_at(row, col), x);
+      }
+    }
+    return result;
+  }
+
+  Matrix
+  pow(const Matrix & A, double x)
+  {
+    return A ^ x;
+  }
+
+  Matrix
+  sqrt(const Matrix & A)
+  {
+    return A ^ .5;
+  }
+
+  Matrix
+  Matrix::get_transpose() const
+  {
+    Matrix T(this->rows(), this->cols());
+    for (size_t col; col < this->cols(); col++) {
+      for (size_t row; row < this->rows(); row++) {
+        T.unsafe_at(row, col) = this->unsafe_at(col, row);
+      }
+    }
+    return T;
+  }
+
+  Matrix &
+  Matrix::transpose()
+  {
+    *this = get_transpose();
+    return *this;
+  }
+
+  Matrix &
+  Matrix::concatenate(const Matrix & B) {
+    if (B.rows() != this->rows()) {
+      throw std::runtime_error("Trying to concatenate matrices with different number of rows");
+    }
+    size_t actual_cols = this->cols();
+    size_t extra_cols = B.cols();
+    this->data_.resize(actual_cols + extra_cols);
+    for (size_t col = 0; col < extra_cols; col++) {
+      this->data_[actual_cols + col] = B.data_[col];
+    }
+    return *this;
+  }
+
+  Matrix
+  operator|(const Matrix & A, const Matrix & B)
+  {
+    Matrix result = A;
+    return result.concatenate(B);
   }
 }

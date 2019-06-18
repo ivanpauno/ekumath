@@ -4,6 +4,7 @@
 namespace ekumath {
 
   class Matrix {
+
   friend
   std::ostream &
   operator<<(std::ostream &stream, const Matrix & A);
@@ -12,7 +13,48 @@ namespace ekumath {
   bool
   operator==(const Matrix & lhs, const Matrix & rhs);
 
+  friend
+  Matrix
+  operator+(const Matrix & A, double x);
+
+  friend
+  Matrix
+  operator*(const Matrix & A, double x);
+
+  friend
+  Matrix
+  operator/(const Matrix & A, double x);
+
+  friend
+  Matrix
+  operator+(const Matrix & A, const Matrix & B);
+
+  friend
+  Matrix
+  operator*(const Matrix & A, const Matrix & B);
+
+  friend
+  Matrix
+  operator^(const Matrix & A, double x);
+
   public:
+    // Some factory methods
+
+    /**
+      * Returns a `size` x `size` identity matrix.
+      */
+    static
+    Matrix
+    Identity(size_t size);
+    /**
+      * Returns a `rows` x `columns` matrix, filled with random numbers.
+      */
+    static
+    Matrix
+    Random(size_t rows, size_t columns);
+
+    // Some constructors
+
     /**
       * Constructs a `rows` x `columns` matrix.
       * All the elements are initialized to `value`.
@@ -29,7 +71,22 @@ namespace ekumath {
       * e.g.: {1.0, 2.0, 3.0}
       *   Is a 1x3 matrix.
       */
+    explicit
     Matrix(std::initializer_list<double> list);
+
+    // Public methods
+
+    /* Get a transposed version of the matrix.*/
+    Matrix
+    get_transpose() const;
+
+    /* Transpose the matrix and return a reference to it.*/
+    Matrix &
+    transpose();
+
+    /* Concatenate columns of another matrix at the end.*/
+    Matrix &
+    concatenate(const Matrix & B);
 
     /* Get element in the specified row and column. */
     double &
@@ -65,9 +122,44 @@ namespace ekumath {
     std::vector<std::vector<double>> data_;
   };
 
+  // associated functions
+
   std::ostream &
   operator<<(std::ostream &stream, const Matrix & A);
 
   bool
   operator==(const Matrix & lhs, const Matrix & rhs);
+
+  Matrix
+  operator+(double x, const Matrix & A);
+
+  Matrix
+  operator+(const Matrix & A, double x);
+
+  Matrix
+  operator*(double x, const Matrix & A);
+
+  Matrix
+  operator*(const Matrix & A, double x);
+
+  Matrix
+  operator/(const Matrix & A, double x);
+
+  Matrix
+  operator+(const Matrix & A, const Matrix & B);
+
+  Matrix
+  operator*(const Matrix & A, const Matrix & B);
+
+  Matrix
+  operator^(const Matrix & A, double x);
+
+  Matrix
+  operator|(const Matrix & A, const Matrix & B);
+
+  Matrix
+  pow(const Matrix & A, double x);
+
+  Matrix
+  sqrt(const Matrix & A);
 }
