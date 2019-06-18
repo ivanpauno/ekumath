@@ -7,7 +7,7 @@ namespace ekumath {
   Matrix::Matrix(size_t rows, size_t columns, double value) :
     rows_(rows), columns_(columns), data_(rows*columns, value)
   {
-    if (!rows_ || !columns_) {
+    if (!rows || !columns) {
       throw std::runtime_error("Can't create matrix of zero rows or columns");
     }
   }
@@ -95,12 +95,7 @@ namespace ekumath {
     if (lhs.rows_ != rhs.rows_ || lhs.columns_ != rhs.columns_) {
       return false;
     }
-    for(size_t i = 0; i < lhs.size(); i++) {
-      if (lhs.data_[i] != rhs.data_[i]) {
-        return false;
-      }
-    }
-    return true;
+    return lhs.data_ == rhs.data_;
   }
 
   std::ostream &
