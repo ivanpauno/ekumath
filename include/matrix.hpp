@@ -62,7 +62,7 @@ namespace ekumath {
 
     size_t rows_;
     size_t columns_;
-    std::vector<double> data_;
+    std::vector<std::vector<double>> data_;
   };
 
   std::ostream &

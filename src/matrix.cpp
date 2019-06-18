@@ -5,10 +5,13 @@
 
 namespace ekumath {
   Matrix::Matrix(size_t rows, size_t columns, double value) :
-    rows_(rows), columns_(columns), data_(rows*columns, value)
+    rows_(rows), columns_(columns), data_(columns)
   {
     if (!rows || !columns) {
       throw std::runtime_error("Can't create matrix of zero rows or columns");
+    }
+    for (auto & column: data_) {
+      column.resize(rows, value);
     }
   }
 
@@ -22,7 +25,10 @@ namespace ekumath {
       }
     }
 
-    data_.resize(rows_*columns_);
+    data_.resize(columns_);
+    for (auto & column: data_) {
+      column.resize(rows_);
+    }
 
     size_t row = 0;
     for (auto & subl: list) {
@@ -35,10 +41,12 @@ namespace ekumath {
     }
   }
 
-  Matrix::Matrix(std::initializer_list<double> list){
+  Matrix::Matrix(std::initializer_list<double> list)
+  {
     rows_ = list.size();
     columns_ = 1U;
-    data_ = list;
+    data_.resize(1);
+    data_[0] = list;
   }
 
   double &
@@ -62,7 +70,7 @@ namespace ekumath {
   double &
   Matrix::unsafe_at(size_t row, size_t column)
   {
-    return data_[row + column * rows_];
+    return data_[column][row];
   }
 
   double
