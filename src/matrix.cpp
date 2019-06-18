@@ -5,6 +5,11 @@
 #include "matrix.hpp"
 
 namespace ekumath {
+
+  Slice::Slice(std::initializer_list<size_t> list) : impl_(list) {}
+  Slice::Slice(size_t i) : impl_{i} {}
+  Slice span{};
+
   Matrix::Matrix(size_t rows, size_t columns, double value) :
     rows_(rows), columns_(columns), data_(columns)
   {

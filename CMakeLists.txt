@@ -33,3 +33,11 @@ function(custom_executable target)
 endfunction()
 
 custom_executable(access_element)
+
+find_package(GTest QUIET)
+if (GTest_FOUND)
+    MESSAGE("Included GTest")
+else (GTest_FOUND)
+    MESSAGE("GTest NOT FOUND. Searched it in: ${GTEST_INCLUDE_DIRS}")
+endif (GTest_FOUND)
+

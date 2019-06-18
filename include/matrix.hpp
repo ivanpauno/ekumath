@@ -3,6 +3,19 @@
 
 namespace ekumath {
 
+  /// A helper class
+  class Slice {
+  public:
+    // allow implicit conversion
+    Slice(std::initializer_list<size_t> list);
+    // allow implicit conversion
+    Slice(size_t i);
+  private:
+    std::vector<size_t> impl_;
+  };
+
+  extern Slice span;
+
   class Matrix {
 
   friend
@@ -95,6 +108,10 @@ namespace ekumath {
     /* Get element in the specified row and column. */
     double
     operator()(size_t row, size_t column) const;
+
+    /* Get submatrix. */
+    Matrix
+    operator()(Slice rows, Slice columns) const;
 
     /* Get number of rows. */
     size_t
