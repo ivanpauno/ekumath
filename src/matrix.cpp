@@ -1,5 +1,6 @@
 #include <cmath>
 #include <sstream>
+#include <iostream>
 #include <stdexcept>
 
 #include "matrix.hpp"
@@ -59,7 +60,7 @@ namespace ekumath {
   Matrix::Identity(size_t size)
   {
     Matrix A(size, size);
-    for (size_t i; i < size; i++) {
+    for (size_t i=0; i < size; i++) {
       A.unsafe_at(i, i) = 1.;
     }
     return A;
@@ -75,6 +76,39 @@ namespace ekumath {
       }
     }
     return A;
+  }
+
+  Matrix
+  Matrix::Random(size_t size)
+  {
+    return Matrix::Random(size, size);
+  }
+
+  Matrix
+  Matrix::operator()(Slice rows, Slice columns) const
+  {
+    auto & target_rows = rows.impl_;
+    auto & target_cols = columns.impl_;
+    if (!target_rows.size()) {
+      target_rows.reserve(rows_);
+      for (size_t i = 0; i < rows_; i++) {
+        target_rows.push_back(i);
+      }
+    }
+    if (!target_cols.size()) {
+      target_cols.reserve(columns_);
+      for (size_t i = 0; i < columns_; i++) {
+        target_cols.push_back(i);
+      }
+    }
+    Matrix result(target_rows.size(), target_cols.size());
+
+    for (size_t col = 0; col < target_cols.size(); col++) {
+      for (size_t row = 0; row < target_rows.size(); row++) {
+        result.unsafe_at(row, col) = this->unsafe_at(target_rows[row], target_cols[col]);
+      }
+    }
+    return result;
   }
 
   double &
@@ -93,6 +127,24 @@ namespace ekumath {
   Matrix::operator()(size_t row, size_t column) const
   {
     return const_cast<Matrix *>(this)->operator()(row, column);
+  }
+
+  double &
+  Matrix::operator()(size_t row)
+  {
+    if (columns_ != 1) {
+      throw std::runtime_error("This is not a column vector");
+    }
+    return this->operator()(row, 0);
+  }
+
+  double
+  Matrix::operator()(size_t row) const
+  {
+    if (columns_ != 1) {
+      throw std::runtime_error("This is not a column vector");
+    }
+    return this->operator()(row, 0);
   }
 
   double &
@@ -122,7 +174,7 @@ namespace ekumath {
   size_t
   Matrix::size() const
   {
-    return data_.size();
+    return rows_ * columns_;
   }
 
   bool
@@ -132,6 +184,12 @@ namespace ekumath {
       return false;
     }
     return lhs.data_ == rhs.data_;
+  }
+
+  bool
+  operator!=(const Matrix & lhs, const Matrix & rhs)
+  {
+    return !(lhs == rhs);
   }
 
   std::ostream &
@@ -184,8 +242,8 @@ namespace ekumath {
 #define __ELEMENT_WISE_OPERATION_WITH_DOUBLE(A, x, op) \
   { \
     Matrix result(A.rows(), A.cols()); \
-    for (size_t col; col < A.cols(); col++) { \
-      for (size_t row; row < A.rows(); row++) { \
+    for (size_t col=0; col < A.cols(); col++) { \
+      for (size_t row=0; row < A.rows(); row++) { \
         result.unsafe_at(row, col) = A.unsafe_at(row, col) op x; \
       } \
     } \
@@ -201,6 +259,12 @@ namespace ekumath {
   Matrix
   operator+(const Matrix & A, double x)
   ELEMENT_WISE_OPERATION_WITH_DOUBLE(A, x, +)
+
+  Matrix
+  operator-(const Matrix & A, double x)
+  {
+    return A + (-x);
+  }
 
   Matrix
   operator*(double x, const Matrix & A)
@@ -224,8 +288,8 @@ namespace ekumath {
       throw std::runtime_error("Matrices must have the same dimension"); \
     } \
     Matrix result(A.rows(), A.cols()); \
-    for (size_t col; col < A.cols(); col++) { \
-      for (size_t row; row < A.rows(); row++) { \
+    for (size_t col=0; col < A.cols(); col++) { \
+      for (size_t row=0; row < A.rows(); row++) { \
         result.unsafe_at(row, col) = A.unsafe_at(row, col) op B.unsafe_at(row, col); \
       } \
     } \
@@ -237,6 +301,10 @@ namespace ekumath {
   ELEMENT_WISE_OPERATION_WITH_ANOTHER_MATRIX(A, B, +)
 
   Matrix
+  operator-(const Matrix & A, const Matrix & B)
+  ELEMENT_WISE_OPERATION_WITH_ANOTHER_MATRIX(A, B, -)
+
+  Matrix
   operator*(const Matrix & A, const Matrix & B)
   ELEMENT_WISE_OPERATION_WITH_ANOTHER_MATRIX(A, B, *)
 
@@ -244,8 +312,8 @@ namespace ekumath {
   operator^(const Matrix & A, double x)
   {
     Matrix result(A.rows(), A.cols());
-    for (size_t col; col < A.cols(); col++) {
-      for (size_t row; row < A.rows(); row++) {
+    for (size_t col=0; col < A.cols(); col++) {
+      for (size_t row=0; row < A.rows(); row++) {
         result.unsafe_at(row, col) = std::pow(A.unsafe_at(row, col), x);
       }
     }
@@ -268,8 +336,8 @@ namespace ekumath {
   Matrix::get_transpose() const
   {
     Matrix T(this->rows(), this->cols());
-    for (size_t col; col < this->cols(); col++) {
-      for (size_t row; row < this->rows(); row++) {
+    for (size_t col=0; col < this->cols(); col++) {
+      for (size_t row=0; row < this->rows(); row++) {
         T.unsafe_at(row, col) = this->unsafe_at(col, row);
       }
     }
@@ -291,6 +359,7 @@ namespace ekumath {
     size_t actual_cols = this->cols();
     size_t extra_cols = B.cols();
     this->data_.resize(actual_cols + extra_cols);
+    columns_ = actual_cols + extra_cols;
     for (size_t col = 0; col < extra_cols; col++) {
       this->data_[actual_cols + col] = B.data_[col];
     }

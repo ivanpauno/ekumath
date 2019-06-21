@@ -23,8 +23,8 @@ install(
   LIBRARY DESTINATION lib
 )
 
-function(custom_executable target)
-  add_executable(${target} examples/${target}.cpp)
+function(custom_executable directory target)
+  add_executable(${target} ${directory}/${target}.cpp)
   target_link_libraries(${target} ${PROJECT_NAME})
   install(
     TARGETS ${target}
@@ -32,12 +32,14 @@ function(custom_executable target)
   )
 endfunction()
 
-custom_executable(access_element)
+custom_executable(examples access_element)
 
 find_package(GTest QUIET)
 if (GTest_FOUND)
-    MESSAGE("Included GTest")
+    custom_executable(test test_matrix)
+    target_link_libraries(test_matrix ${GTEST_LIBRARIES} pthread)
+    target_include_directories(test_matrix PUBLIC ${GTEST_INCLUDE_DIRS})
+    add_test(NAME test_matrix COMMAND test_matrix)
 else (GTest_FOUND)
-    MESSAGE("GTest NOT FOUND. Searched it in: ${GTEST_INCLUDE_DIRS}")
+    MESSAGE("GTest NOT FOUND, tests were not built.")
 endif (GTest_FOUND)
-

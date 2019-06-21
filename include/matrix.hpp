@@ -1,3 +1,6 @@
+#ifndef MATRIX_HPP_
+#define MATRIX_HPP_
+
 #include <initializer_list>
 #include <vector>
 
@@ -5,6 +8,7 @@ namespace ekumath {
 
   /// A helper class
   class Slice {
+    friend class Matrix;
   public:
     // allow implicit conversion
     Slice(std::initializer_list<size_t> list);
@@ -44,6 +48,10 @@ namespace ekumath {
 
   friend
   Matrix
+  operator-(const Matrix & A, const Matrix & B);
+
+  friend
+  Matrix
   operator*(const Matrix & A, const Matrix & B);
 
   friend
@@ -65,6 +73,12 @@ namespace ekumath {
     static
     Matrix
     Random(size_t rows, size_t columns);
+    /**
+      * Returns a `size` x `size` matrix, filled with random numbers.
+      */
+    static
+    Matrix
+    Random(size_t size);
 
     // Some constructors
 
@@ -109,6 +123,14 @@ namespace ekumath {
     double
     operator()(size_t row, size_t column) const;
 
+    /* Get element in the specified row, for a column vector. */
+    double &
+    operator()(size_t row);
+
+    /* Get element in the specified row, for a column vector. */
+    double
+    operator()(size_t row) const;
+
     /* Get submatrix. */
     Matrix
     operator()(Slice rows, Slice columns) const;
@@ -147,11 +169,17 @@ namespace ekumath {
   bool
   operator==(const Matrix & lhs, const Matrix & rhs);
 
+  bool
+  operator!=(const Matrix & lhs, const Matrix & rhs);
+
   Matrix
   operator+(double x, const Matrix & A);
 
   Matrix
   operator+(const Matrix & A, double x);
+
+  Matrix
+  operator-(const Matrix & A, double x);
 
   Matrix
   operator*(double x, const Matrix & A);
@@ -164,6 +192,9 @@ namespace ekumath {
 
   Matrix
   operator+(const Matrix & A, const Matrix & B);
+
+  Matrix
+  operator-(const Matrix & A, const Matrix & B);
 
   Matrix
   operator*(const Matrix & A, const Matrix & B);
@@ -180,3 +211,5 @@ namespace ekumath {
   Matrix
   sqrt(const Matrix & A);
 }
+
+#endif  // MATRIX_HPP_
